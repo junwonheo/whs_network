@@ -37,8 +37,7 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header,
         struct ipheader * ip = (struct ipheader *)
                                (packet + sizeof(struct ethheader)); 
 
-        if (ip->iph_protocol == IPPROTO_TCP) { // Check if it's a TCP packet
-            // Print Ethernet header
+        if (ip->iph_protocol == IPPROTO_TCP) {
             printf("Ethernet Header\n");
             printf("   Source MAC: ");
             for (int i = 0; i < 6; i++) {
@@ -53,24 +52,21 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header,
             }
             printf("\n");
 
-            // Print IP header
             printf("IP Header\n");
             printf("   Source IP: %s\n", inet_ntoa(ip->iph_sourceip));
             printf("   Destination IP: %s\n", inet_ntoa(ip->iph_destip));
 
-            // Get TCP header
             struct tcphdr *tcp = (struct tcphdr *)(packet + sizeof(struct ethheader) + sizeof(struct ipheader));
 
-            // Print TCP header
             printf("TCP Header\n");
             printf("   Source Port: %u\n", ntohs(tcp->th_sport));
             printf("   Destination Port: %u\n", ntohs(tcp->th_dport));
 
-            // Calculate data length
+            
             int iph_len = ip->iph_ihl * 4;
             int data_len = ntohs(ip->iph_len) - iph_len - (tcp->th_off * 4);
 
-            // Print the message
+           
             printf("Message Data\n");
             for (int i = 0; i < data_len; i++) {
                 printf("%c", packet[iph_len + (tcp->th_off * 4) + i]);
