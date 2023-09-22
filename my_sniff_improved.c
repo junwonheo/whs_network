@@ -2,8 +2,29 @@
 #include <stdio.h>
 #include <pcap.h>
 #include <arpa/inet.h>
-#include <netinet/tcp.h>
 #include <string.h> 
+/* TCP Header */
+struct tcpheader {
+    u_short tcp_sport;               /* source port */
+    u_short tcp_dport;               /* destination port */
+    u_int   tcp_seq;                 /* sequence number */
+    u_int   tcp_ack;                 /* acknowledgement number */
+    u_char  tcp_offx2;               /* data offset, rsvd */
+#define TH_OFF(th)      (((th)->tcp_offx2 & 0xf0) >> 4)
+    u_char  tcp_flags;
+#define TH_FIN  0x01
+#define TH_SYN  0x02
+#define TH_RST  0x04
+#define TH_PUSH 0x08
+#define TH_ACK  0x10
+#define TH_URG  0x20
+#define TH_ECE  0x40
+#define TH_CWR  0x80
+#define TH_FLAGS        (TH_FIN|TH_SYN|TH_RST|TH_ACK|TH_URG|TH_ECE|TH_CWR)
+    u_short tcp_win;                 /* window */
+    u_short tcp_sum;                 /* checksum */
+    u_short tcp_urp;                 /* urgent pointer */
+};
 
 /* Ethernet header */
 struct ethheader {
@@ -56,22 +77,17 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header,
             printf("   Source IP: %s\n", inet_ntoa(ip->iph_sourceip));
             printf("   Destination IP: %s\n", inet_ntoa(ip->iph_destip));
 
-            struct tcphdr *tcp = (struct tcphdr *)(packet + sizeof(struct ethheader) + sizeof(struct ipheader));
+            struct tcpheader *tcp = (struct tcpheader *)(packet + sizeof(struct ethheader) + sizeof(struct ipheader));
 
             printf("TCP Header\n");
-            printf("   Source Port: %u\n", ntohs(tcp->th_sport));
-            printf("   Destination Port: %u\n", ntohs(tcp->th_dport));
+            printf("   Source Port: %u\n", ntohs(tcp->tcp_sport));
+            printf("   Destination Port: %u\n", ntohs(tcp->tcp_dport));
 
             
             int iph_len = ip->iph_ihl * 4;
-            int data_len = ntohs(ip->iph_len) - iph_len - (tcp->th_off * 4);
+            int data_len = ntohs(ip->iph_len) - iph_len - (tcp->tcp_offx2 * 4);
 
-           
-            printf("Message Data\n");
-            for (int i = 0; i < data_len; i++) {
-                printf("%c", packet[iph_len + (tcp->th_off * 4) + i]);
-            }
-            printf("\n");
+	    printf("\n");
         }
     }
 }
