@@ -83,10 +83,6 @@ void got_packet(u_char *args, const struct pcap_pkthdr *header,
             printf("   Source Port: %u\n", ntohs(tcp->tcp_sport));
             printf("   Destination Port: %u\n", ntohs(tcp->tcp_dport));
 
-            
-            int iph_len = ip->iph_ihl * 4;
-            int data_len = ntohs(ip->iph_len) - iph_len - (tcp->tcp_offx2 * 4);
-
 	    printf("\n");
         }
     }
